@@ -22,7 +22,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Cache west modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             modules/
@@ -68,7 +68,7 @@ jobs:
           cp build/zephyr/zmk.uf2 artifacts/tomkey_right.uf2
 
       - name: Upload firmware artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: tomkey-firmware-${{ github.run_number }}
           path: |
@@ -77,7 +77,7 @@ jobs:
 
       - name: Create Release (on main branch push)
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}
           name: Build ${{ github.run_number }} - ${{ github.event.head_commit.message }}
