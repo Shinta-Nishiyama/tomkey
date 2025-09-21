@@ -1,5 +1,11 @@
-config SHIELD_TOMKEY_R
-    def_bool $(shields_list_contains,tomkey_R)
+# Copyright (c) 2024
+# SPDX-License-Identifier: MIT
 
 config SHIELD_TOMKEY_L
     def_bool $(shields_list_contains,tomkey_L)
+
+config SHIELD_TOMKEY_R
+    def_bool $(shields_list_contains,tomkey_R)
+
+config SHIELD_TOMKEY
+    def_bool $(shields_list_contains,tomkey)
