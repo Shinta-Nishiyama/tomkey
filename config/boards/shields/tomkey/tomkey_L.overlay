@@ -19,10 +19,3 @@
 &default_transform {
     col-offset = <0>;
 };
-
-// 左側がマスター（central）
-/ {
-    chosen {
-        zmk,split-role = "central";
-    };
-};
