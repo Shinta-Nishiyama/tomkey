@@ -1,6 +1,108 @@
 name: Build ZMK firmware
-on: [push, pull_request, workflow_dispatch]
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'config/**'
+      - 'build.yaml'
+      - '.github/workflows/build.yml'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
-    uses: zmkfirmware/zmk/.github/workflows/build-user-config.yml@main
+    runs-on: ubuntu-latest
+    container:
+      image: zmkfirmware/zmk-build-arm:stable
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache west modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            modules/
+            tools/
+            zephyr/
+            bootloader/
+            zmk/
+          key: ${{ runner.os }}-build-${{ hashFiles('build.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - name: Initialize workspace (west init)
+        run: |
+          if [ ! -d "zmk" ]; then
+            west init -l config
+          fi
+
+      - name: Update modules (west update)
+        run: west update
+
+      - name: Export Zephyr CMake package (west zephyr-export)
+        run: west zephyr-export
+
+      - name: Build left side
+        run: |
+          west build -s zmk/app -b nice_nano_v2 -- \
+            -DSHIELD="tomkey_L" \
+            -DZMK_CONFIG="${GITHUB_WORKSPACE}/config"
+          
+          mkdir -p artifacts
+          cp build/zephyr/zmk.uf2 artifacts/tomkey_left.uf2
+
+      - name: Clean build directory
+        run: rm -rf build
+
+      - name: Build right side
+        run: |
+          west build -s zmk/app -b nice_nano_v2 -- \
+            -DSHIELD="tomkey_R" \
+            -DZMK_CONFIG="${GITHUB_WORKSPACE}/config"
+          
+          cp build/zephyr/zmk.uf2 artifacts/tomkey_right.uf2
+
+      - name: Upload firmware artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: tomkey-firmware-${{ github.run_number }}
+          path: |
+            artifacts/tomkey_left.uf2
+            artifacts/tomkey_right.uf2
+
+      - name: Create Release (on main branch push)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: Build ${{ github.run_number }} - ${{ github.event.head_commit.message }}
+          draft: false
+          prerelease: true
+          files: |
+            artifacts/tomkey_left.uf2
+            artifacts/tomkey_right.uf2
+          body: |
+            ## tomkeyLk ファームウェア
+            
+            ### 📦 ファイル
+            - `tomkey_left.uf2` - 左側（マスター）
+            - `tomkey_right.uf2` - 右側（スレーブ）
+            
+            ### 🔧 インストール方法
+            1. キーボードのリセットボタンを2回押してブートローダーモードに入る
+            2. PCにUSBドライブとして認識される
+            3. 対応する.uf2ファイルをドラッグ&ドロップ
+            4. 自動的に再起動される
+            
+            ### ⚡ 変更点
+            ${{ github.event.head_commit.message }}
+            
+            Build: #${{ github.run_number }}
+            Commit: ${{ github.sha }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
