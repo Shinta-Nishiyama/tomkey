@@ -1,8 +1,15 @@
 file_format: "1"
 id: tomkey
-name: tomkey
+name: tomkeyLk
 type: shield
-url: https://github.com/pukuhei/tomkey.git
-requires: [seeeduino_xiao_ble]
+url: https://github.com/pukuhei/tomkey
+requires: [pro_micro]
+exposes: [i2c_oled, spi]
 features:
   - keys
+  - display
+  - trackball
+  - underglow
+siblings:
+  - tomkey_L
+  - tomkey_R
