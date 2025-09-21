@@ -9,7 +9,6 @@
     chosen {
         zmk,kscan = &kscan0;
         zmk,matrix_transform = &default_transform;
-        zephyr,display = &oled;
     };
 
     default_transform: keymap_transform_0 {
@@ -39,92 +38,39 @@
         diode-direction = "col2row";
 
         col-gpios
-            = <&pro_micro 21 GPIO_ACTIVE_HIGH> // COL0
-            , <&pro_micro 20 GPIO_ACTIVE_HIGH> // COL1
-            , <&pro_micro 19 GPIO_ACTIVE_HIGH> // COL2
-            , <&pro_micro 18 GPIO_ACTIVE_HIGH> // COL3
-            , <&pro_micro 15 GPIO_ACTIVE_HIGH> // COL4
-            , <&pro_micro 14 GPIO_ACTIVE_HIGH> // COL5
+            = <&pro_micro 21 GPIO_ACTIVE_HIGH>
+            , <&pro_micro 20 GPIO_ACTIVE_HIGH>
+            , <&pro_micro 19 GPIO_ACTIVE_HIGH>
+            , <&pro_micro 18 GPIO_ACTIVE_HIGH>
+            , <&pro_micro 15 GPIO_ACTIVE_HIGH>
+            , <&pro_micro 14 GPIO_ACTIVE_HIGH>
             ;
 
         row-gpios
-            = <&pro_micro 4 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>  // ROW0
-            , <&pro_micro 5 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>  // ROW1
-            , <&pro_micro 6 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>  // ROW2
-            , <&pro_micro 7 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>  // ROW3
+            = <&pro_micro 4 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            , <&pro_micro 5 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            , <&pro_micro 6 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            , <&pro_micro 7 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
             ;
     };
 
-    // トラックボール用のセンサー設定
-    trackball: trackball {
-        compatible = "zmk,behavior-point-device-incremental";
-        label = "TRACKBALL";
-        #trackball-binding-cells = <0>;
+    // トラックボールのマウス移動
+    tmv: behavior_trackball_move {
+        compatible = "zmk,behavior-mouse-move";
+        label = "TRACKBALL_MOVE";
+        #binding-cells = <0>;
         delay-ms = <0>;
         time-to-max-speed-ms = <300>;
         acceleration-exponent = <1>;
     };
 
-    // トラックボールのマウス移動
-    tmv: behavior_trackball_move {
-        compatible = "zmk,behavior-point-device-incremental";
-        label = "TRACKBALL_MOVE";
-        #trackball-binding-cells = <0>;
-        mode = "move-mode";
-        scale-mode = "dividor";
-        scale-factor = <3>;
-        x-invert;
-    };
-
-    // トラックボールのスクロール
+    // トラックボールのスクロール  
     tsl: behavior_trackball_scroll {
-        compatible = "zmk,behavior-point-device-incremental";
+        compatible = "zmk,behavior-mouse-scroll";
         label = "TRACKBALL_SCROLL";
-        #trackball-binding-cells = <0>;
-        mode = "scroll-mode";
-        scale-mode = "dividor";
-        scale-factor = <5>;
-        x-invert;
-        y-invert;
-    };
-};
-
-// I2C設定（OLED用）
-&pro_micro_i2c {
-    status = "okay";
-
-    oled: ssd1306@3c {
-        compatible = "solomon,ssd1306fb";
-        reg = <0x3c>;
-        label = "DISPLAY";
-        width = <128>;
-        height = <32>;
-        segment-offset = <0>;
-        page-offset = <0>;
-        display-offset = <0>;
-        multiplex-ratio = <31>;
-        segment-remap;
-        com-inverted;
-        prechargep = <0x22>;
-    };
-};
-
-// SPI設定（トラックボール用）
-&spi0 {
-    status = "okay";
-    
-    cs-gpios = <&pro_micro 10 GPIO_ACTIVE_LOW>;
-    
-    pmw3610@0 {
-        compatible = "pixart,pmw3610";
-        reg = <0>;
-        label = "PMW3610";
-        spi-max-frequency = <2000000>;
-        dr-gpios = <&pro_micro 16 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
-        motion-gpios = <&pro_micro 9 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
-        cpi = <800>;
-        evt-type = "move";
-        x-input-code = <INPUT_REL_X>;
-        y-input-code = <INPUT_REL_Y>;
+        #binding-cells = <0>;
+        delay-ms = <0>;
+        time-to-max-speed-ms = <300>;
+        acceleration-exponent = <1>;
     };
 };
