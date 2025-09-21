@@ -19,10 +19,3 @@
 &default_transform {
     col-offset = <6>;
 };
-
-// 右側がスレーブ（peripheral）
-/ {
-    chosen {
-        zmk,split-role = "peripheral";
-    };
-};
